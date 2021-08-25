@@ -74,6 +74,49 @@ class InstantSearch extends Feature {
 		add_filter( 'ep_saved_weighting_configuration', [ $this, 'epio_send_search_template' ] );
 		add_filter( 'ep_pre_dashboard_index', [ $this, 'epio_send_search_template' ] );
 		add_filter( 'ep_wp_cli_pre_index', [ $this, 'epio_send_search_template' ] );
+		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ] );
+		add_action( 'wp_footer', [ $this, 'modal_markup' ] );
+	}
+
+	/**
+	 * Enqueue our autosuggest script.
+	 */
+	public function enqueue_assets() {
+		if ( ! Utils\is_epio() ) {
+			return;
+		}
+
+		$host = Utils\get_host();
+
+		wp_enqueue_script(
+			'elasticpress-instant-search',
+			EP_URL . 'dist/js/instant-search-script.min.js',
+			[],
+			EP_VERSION,
+			true
+		);
+
+		wp_enqueue_style(
+			'elasticpress-instant-search',
+			EP_URL . 'dist/css/instant-search-styles.min.css',
+			[],
+			EP_VERSION
+		);
+
+		wp_localize_script(
+			'elasticpress-instant-search',
+			'epls',
+			[
+				'endpointUrl' => trailingslashit( $host ) . Indexables::factory()->get( 'post' )->get_index_name() . '/instant-search',
+			]
+		);
+	}
+
+	/**
+	 * Output modal markup.
+	 */
+	public function modal_markup() {
+		echo '<div id="ep-search-modal-root"></div>';
 	}
 
 	/**

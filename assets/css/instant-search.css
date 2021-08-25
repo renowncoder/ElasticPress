@@ -1,0 +1,33 @@
+.dialog-overlay,
+.dialog-container {
+	bottom: 0;
+	left: 0;
+	position: fixed;
+	right: 0;
+	top: 0;
+}
+
+.admin-bar .dialog-overlay,
+.admin-bar .dialog-container {
+	top: 32px;
+}
+
+.dialog-container[aria-hidden="true"] {
+	display: none;
+}
+
+.dialog-overlay {
+	background-color: rgba(43, 46, 56, 0.9);
+}
+
+.dialog-content {
+	background-color: #fff;
+	bottom: 4vw;
+	left: 10vw;
+	margin: auto;
+	overflow-y: auto;
+	position: absolute;
+	right: 10vw;
+	top: 4vw;
+	z-index: 2;
+}

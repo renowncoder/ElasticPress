@@ -86,7 +86,8 @@ class InstantSearch extends Feature {
 			return;
 		}
 
-		$host = Utils\get_host();
+		$host  = Utils\get_host();
+		$index = Indexables::factory()->get( 'post' )->get_index_name();
 
 		wp_enqueue_script(
 			'elasticpress-instant-search',
@@ -107,7 +108,7 @@ class InstantSearch extends Feature {
 			'elasticpress-instant-search',
 			'epls',
 			[
-				'endpointUrl' => trailingslashit( $host ) . Indexables::factory()->get( 'post' )->get_index_name() . '/instant-search',
+				'endpointUrl' => trailingslashit( $host ) . 'api/v1/instant-search/' . $index,
 			]
 		);
 	}

@@ -12,6 +12,9 @@ export const getResults = async (args, signal) => {
 
 	const data = await fetch(`${endpointUrl}?${query.toString()}`, {
 		signal,
+		headers: {
+			Accept: 'application/json',
+		},
 	});
 
 	const response = await data.json();

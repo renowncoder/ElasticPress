@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useReducer, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import ReactDOM from 'react-dom';
 
+import { debounce } from '../utils/helpers';
 import { InitialState, SearchReducer } from './reducers/search';
 import { getResults } from './services/search';
 import SearchContext from './contexts/search';
@@ -16,6 +17,9 @@ const App = () => {
 	const abortRequestRef = useRef(new AbortController());
 	const searchRequestRef = useRef();
 	const inputRef = useRef();
+	const stateRef = useRef();
+
+	stateRef.current = state;
 
 	/**
 	 * Handle submitting the search form.
@@ -49,10 +53,9 @@ const App = () => {
 		};
 	};
 
-	/**
-	 * Query new search results.
-	 */
 	const doSearch = useCallback(() => {
+		const { query } = stateRef.current;
+
 		/**
 		 * Abort any requests in progress.
 		 */
@@ -64,7 +67,7 @@ const App = () => {
 		 */
 		dispatch({ type: 'START_LOADING' });
 
-		searchRequestRef.current = getResults(state.query, abortRequestRef.current.signal)
+		searchRequestRef.current = getResults(query, abortRequestRef.current.signal)
 			.then(
 				/**
 				 * Update search results and stop loading.
@@ -100,7 +103,12 @@ const App = () => {
 					searchRequestRef.current = false;
 				},
 			);
-	}, [state.query]);
+	}, []);
+
+	/**
+	 * Query new search results.
+	 */
+	const doDebouncedSearch = useMemo(() => debounce(doSearch, 500), [doSearch]);
 
 	/**
 	 * Handle a change to the search term.
@@ -113,11 +121,11 @@ const App = () => {
 			inputRef.current.value = state.query.search;
 		}
 
-		doSearch();
+		doDebouncedSearch();
 	};
 
 	/**
-	 * Handle a change to the pagination.
+	 * Handle a change to pagination.
 	 */
 	const handlePagination = () => {
 		doSearch();
@@ -127,7 +135,7 @@ const App = () => {
 	 * Effects.
 	 */
 	useEffect(bindInputEvents, []);
-	useEffect(handleSearch, [state.query.search, doSearch]);
+	useEffect(handleSearch, [state.query.search, doDebouncedSearch]);
 	useEffect(handlePagination, [state.query.from, doSearch]);
 
 	return (

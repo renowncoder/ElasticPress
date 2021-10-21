@@ -153,6 +153,7 @@ class InstantSearch extends Feature {
 	 */
 	public function get_search_template() {
 		$placeholder = '{{ep_placeholder}}';
+		$facets      = Features::factory()->get_registered_feature( 'facets' );
 		$post_type   = Features::factory()->get_registered_feature( 'search' )->get_searchable_post_types();
 		$post_status = get_post_stati(
 			[
@@ -161,6 +162,9 @@ class InstantSearch extends Feature {
 			]
 		);
 
+		add_filter( 'ep_is_facetable', '__return_true' );
+		add_filter( 'ep_facet_use_field', [ $this, 'facet_use_field' ] );
+		add_action( 'pre_get_posts', [ $facets, 'facet_query' ] );
 		add_filter( 'ep_intercept_remote_request', '__return_true' );
 		add_filter( 'ep_do_intercept_request', [ $this, 'intercept_search_request' ], 10, 4 );
 		add_filter( 'ep_is_integrated_request', [ $this, 'is_integrated_request' ], 10, 2 );
@@ -179,6 +183,9 @@ class InstantSearch extends Feature {
 		remove_filter( 'ep_is_integrated_request', [ $this, 'is_integrated_request' ], 10, 2 );
 		remove_filter( 'ep_do_intercept_request', [ $this, 'intercept_search_request' ], 10 );
 		remove_filter( 'ep_intercept_remote_request', '__return_true' );
+		remove_action( 'pre_get_posts', [ $facets, 'facet_query' ] );
+		remove_filter( 'ep_facet_use_field', [ $this, 'facet_use_field' ] );
+		remove_filter( 'ep_is_facetable', '__return_true' );
 
 		return $this->search_template;
 	}
@@ -227,5 +234,17 @@ class InstantSearch extends Feature {
 		$this->search_template = $query['args']['body'];
 
 		return wp_remote_request( $query['url'], $args );
+	}
+
+	/**
+	 * Return field to use for facets.
+	 *
+	 * @param string $field The term field to use.
+	 * @return string The term field to use.
+	 */
+	public function facet_use_field( $field ) {
+		$field = 'facet';
+
+		return $field;
 	}
 }

@@ -437,6 +437,7 @@ class Post extends Indexable {
 			'ping_status'           => $ping_status,
 			'menu_order'            => $menu_order,
 			'guid'                  => $post->guid,
+			'thumbnail'             => $this->prepare_thumbnail( $post ),
 		);
 
 		/**
@@ -584,6 +585,37 @@ class Post extends Indexable {
 		}
 
 		return $terms;
+	}
+
+	/**
+	 * Prepare thumbnail to send to ES.
+	 *
+	 * @param WP_Post $post Post object
+	 * @since 4.0.0
+	 * @return array|null
+	 */
+	private function prepare_thumbnail( $post ) {
+		$attachment_id = get_post_thumbnail_id( $post );
+
+		if ( ! $attachment_id ) {
+			return null;
+		}
+
+		$image_sizes    = wp_get_additional_image_sizes();
+		$image_size     = isset( $image_sizes['woocommerce_thumbnail'] ) ? 'woocommerce_thumbnail' : 'thumbnail';
+		$attachment_src = wp_get_attachment_image_src( $attachment_id, $image_size );
+
+		if ( ! $attachment_src ) {
+			return null;
+		}
+
+		return [
+			'ID'     => $attachment_id,
+			'src'    => $attachment_src[0],
+			'width'  => $attachment_src[1],
+			'height' => $attachment_src[2],
+			'alt'    => trim( wp_strip_all_tags( get_post_meta( $attachment_id, '_wp_attachment_image_alt', true ) ) ),
+		];
 	}
 
 	/**
